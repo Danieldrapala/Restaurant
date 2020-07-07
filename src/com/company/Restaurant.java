@@ -1,95 +1,131 @@
 package com.company;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class Restaurant {
 
-    Map<Item, Double> menuWithPrices;
-    ArrayList<Order> orders;
+    Map<MenuPosition, Double> menuWithPrices;
+    Map<LocalDateTime,Order> orders;
 
-    public Restaurant(Map<Item, Double> menuWithPrices){
+    public Restaurant(HashMap<MenuPosition, Double> menuWithPrices){
         this.menuWithPrices=menuWithPrices;
-        this.orders=new ArrayList<>();
+        this.orders=new HashMap<LocalDateTime,Order>();
     }
-    public void collectOrder(int orderId, ArrayList<Item> items,int numbertable,Date date) {
-
-            orders.add(new Order(items,numbertable,date,isBig(items),orderId ));
+    public void collectOrder(LocalDateTime dateTime, ArrayList<OrderItem> items,int numbertable ) {
+            orders.put(dateTime,new Order(items,numbertable,100 ));
         }
-    public void editOrder(int orderId,Item oldOne,Item newOne){
+    public void editOrder(LocalDateTime orderId,OrderItem oldOne,OrderItem newOne){
         orders.get(orderId).items.remove(oldOne);
         orders.get(orderId).items.add(newOne);
     }
-    public boolean isBig(ArrayList<Item> items){
-        return items.size()>100;
-    }
     //Array orders should be sorted by date
 
-    public int calculateIncomeForSpecificDay(Date day){
-        int sum=0;
-        for(Order ord: orders){
-            if(ord.date.equals(day))
-               sum+=ord.calculateIncome();
+    public double calculateIncomeForSpecificDay(LocalDate day){
+        double sum=0.0;
+        for(Map.Entry<LocalDateTime,Order> entry :orders.entrySet()){
+            LocalDate localDate = entry.getKey().toLocalDate();
+            if(localDate.equals(day))
+                sum+=entry.getValue().calculateIncome();
+
         }
         return sum;
     }
 
     public class Order {
         private int id;
-        private Date date;
-        private ArrayList<Item> items;
+        private ArrayList<OrderItem> items;
         private int tablesNumber;
+        private int border;
 
-        Order(ArrayList<Item> items, int table, Date date, boolean isBig, int orderId){
+        Order(ArrayList<OrderItem> items, int table,int border){
             this.items=items;
-            this.date=date;
             this.tablesNumber=table;
-            if(isBig){
-                Item i=new Item("Bordeaux",1);
-                i.setCount(1);
-                items.add(i);
+            this.border=border;
+            if(isBig(items,border)){
+                items.add(new OrderItem(new MenuPosition("Bordeaux",1),1));
             }
-            this.id=orderId;
         }
         public int calculateIncome(){
             int sum=0;
-            for(Item item:items){
-                sum+=item.getCount()*menuWithPrices.get(item);
+            for(OrderItem item:items){
+                sum+=item.getCount()*menuWithPrices.get(item.product);
             }
             return  sum;
         }
 
+        public boolean isBig(ArrayList<OrderItem> items,int border){
+            return items.size()> border;
+        }
+
 
     }
-    public class Item {
-        private int id;
-        private String name;
-        private int count;
-        Item(String name, int id){
-            this.name=name;
-            this.id=id;
-        }
-        public int getId(){return id;}
-        public String getName() {
-            return name;
-        }
 
+    public class OrderItem {
+        MenuPosition product;
+        private int count;
+        OrderItem(MenuPosition product,int count){
+            this.product=product;
+            this.count=count;
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(product, count);
+        }
+        @Override
+        public boolean equals(Object o) {
+
+            if (o == this) return true;
+            if (!(o instanceof OrderItem)) {
+                return false;
+            }
+            OrderItem item = (OrderItem) o;
+            return count == item.count &&
+                    Objects.equals(product, item.product);
+        }
         public int getCount() {
             return count;
         }
         public void setCount(int count){
             this.count=count;
         }
-        public void setName(String name){
+    }
+    public  class MenuPosition{
+        private int numberOnMenu;
+        private String name;
+        public MenuPosition(String name,int number){
+            this.numberOnMenu=number;
             this.name=name;
         }
-    }
+        @Override
+        public boolean equals(Object obj) {
+            if(obj==null) return false;
+            if (!(obj instanceof MenuPosition))
+                return false;
+            if (obj == this)
+                return true;
+            return this.name.equals(((MenuPosition) obj).name)
+                    && ((MenuPosition) obj).numberOnMenu==this.numberOnMenu;
+        }
+        @Override
+        public int hashCode(){
+            return Objects.hash(numberOnMenu, name);
+        }
+        public int getNumberOnMenu() { return numberOnMenu; }
 
+        public String getName() { return name; }
+
+        public void setName(String name) { this.name = name; }
+
+        public void setNumberOnMenu(int numberOnMenu) { this.numberOnMenu = numberOnMenu; }
+    }
     public void init() {
-        menuWithPrices.put(new Item("Bordeaux",1), 150d);
-        menuWithPrices.put(new Item("Schabowy",2), 40d);
-        menuWithPrices.put(new Item("Sałatka Szefa",3), 25d);
-        menuWithPrices.put(new Item("Szarlotka",4), 10d);
-        menuWithPrices.put(new Item("Piwo Łomza",5), 9d);
-        menuWithPrices.put(new Item("Woda",6), 5d);
+        menuWithPrices.put(new MenuPosition("Bordeaux",1), 150d);
+        menuWithPrices.put(new MenuPosition("Schabowy",2), 40d);
+        menuWithPrices.put(new MenuPosition("Sałatka Szefa",3), 25d);
+        menuWithPrices.put(new MenuPosition("Szarlotka",4), 10d);
+        menuWithPrices.put(new MenuPosition("Piwo Łomza",5), 9d);
+        menuWithPrices.put(new MenuPosition("Woda",6), 5d);
     }
 }
