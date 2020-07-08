@@ -6,15 +6,17 @@ import java.util.*;
 
 public class Restaurant {
 
-    Map<MenuPosition, Double> menuWithPrices;
-    Map<LocalDateTime,Order> orders;
+    public Map<MenuPosition, Double> menuWithPrices;
+    public Map<LocalDateTime,Order> orders;
 
-    public Restaurant(HashMap<MenuPosition, Double> menuWithPrices){
-        this.menuWithPrices=menuWithPrices;
-        this.orders=new HashMap<LocalDateTime,Order>();
+    public Restaurant(){
+        this.menuWithPrices= new HashMap<>();
+        this.orders= new HashMap<>();
+        init();
     }
     public void collectOrder(LocalDateTime dateTime, ArrayList<OrderItem> items,int numbertable ) {
-            orders.put(dateTime,new Order(items,numbertable,100 ));
+        ArrayList<OrderItem> items1 = (ArrayList<OrderItem>) items.clone();
+        orders.put(dateTime,new Order(items1,numbertable,100 ));
         }
     public void editOrder(LocalDateTime orderId,OrderItem oldOne,OrderItem newOne){
         orders.get(orderId).items.remove(oldOne);
@@ -35,7 +37,7 @@ public class Restaurant {
 
     public class Order {
         private int id;
-        private ArrayList<OrderItem> items;
+        public ArrayList<OrderItem> items;
         private int tablesNumber;
         private int border;
 
@@ -62,10 +64,10 @@ public class Restaurant {
 
     }
 
-    public class OrderItem {
+    public static class OrderItem {
         MenuPosition product;
         private int count;
-        OrderItem(MenuPosition product,int count){
+        public OrderItem(MenuPosition product, int count){
             this.product=product;
             this.count=count;
         }
@@ -91,7 +93,7 @@ public class Restaurant {
             this.count=count;
         }
     }
-    public  class MenuPosition{
+    public static class MenuPosition{
         private int numberOnMenu;
         private String name;
         public MenuPosition(String name,int number){
